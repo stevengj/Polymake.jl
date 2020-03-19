@@ -7,7 +7,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        julia-version: ['1.0', '1.3']
+        julia-version: ['1.3']
         os: [ubuntu-latest, macOS-latest]
       fail-fast: true
     
@@ -17,6 +17,11 @@ jobs:
         uses: julia-actions/setup-julia@v1
         with:
           version: ${{ matrix.julia-version }}
+      #FIXME remove again 
+      - name: "add julia registry"
+        run: julia -e 'using Pkg; pkg"registry add https://github.com/JuliaRegistries/General";'
+      - name: "add custom registry"
+        run: julia -e 'using Pkg; pkg"registry add https://github.com/oscar-system/OscarRegistry";'
       - uses: julia-actions/julia-buildpkg@latest
       - uses: julia-actions/julia-runtest@latest
       - uses: julia-actions/julia-uploadcodecov@latest
@@ -37,6 +42,11 @@ jobs:
         uses: julia-actions/setup-julia@v1
         with:
           version: ${{ matrix.julia-version }}
+      #FIXME remove again 
+      - name: "add julia registry"
+        run: julia -e 'using Pkg; pkg"registry add https://github.com/JuliaRegistries/General";'
+      - name: "add custom registry"
+        run: julia -e 'using Pkg; pkg"registry add https://github.com/oscar-system/OscarRegistry";'
       - uses: julia-actions/julia-buildpkg@latest
       - uses: julia-actions/julia-runtest@latest
       - uses: julia-actions/julia-uploadcodecov@latest

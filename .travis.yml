@@ -5,17 +5,11 @@ os:
   - linux
   - osx
 julia:
-  - 1.0
-  - 1.2
   - 1.3
   - 1.4
   - nightly
 matrix:
   exclude:
-  - julia: 1.0
-    os: osx
-  - julia: 1.2
-    os: osx
   - julia: 1.4
     os: osx
   - julia: nightly
@@ -24,6 +18,10 @@ matrix:
   - julia: nightly
 notifications:
   email: false
+#FIXME: add registry for testing, remove afterwards
+before_script:
+  - julia -e 'using Pkg; pkg"registry add https://github.com/JuliaRegistries/General";'
+  - julia -e 'using Pkg; pkg"registry add https://github.com/oscar-system/OscarRegistry";'
 codecov: true
 env:
   global:
