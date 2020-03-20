@@ -10,6 +10,8 @@ import Base: ==, <, <=, *, -, +, //, ^, div, rem, one, zero,
     setdiff, setdiff!, setindex!, symdiff, symdiff!,
     union, union!
 
+using Pkg: depots1
+
 using SparseArrays
 import SparseArrays: AbstractSparseMatrix, findnz
 import SparseArrays
@@ -21,6 +23,10 @@ import Libdl.dlext
 # to the corresponding julia functions.
 # See also https://github.com/Nemocas/Nemo.jl/issues/788
 import LoadFlint
+
+using perl_jll
+using polymake_jll
+using Ninja_jll
 
 struct PolymakeError <: Exception
     msg
@@ -45,14 +51,19 @@ include("generated/type_translator.jl")
 include("repl.jl")
 include("ijulia.jl")
 
-include(joinpath(deps_dir,"deps.jl"))
-
 function __init__()
     @initcxx
 
-    if using_binary
-        check_deps()
-        prepare_env()
+    # prepare environment variables
+    ENV["PATH"] *= ":" * Ninja_jll.PATH
+    ENV["PATH"] *= ":" * perl_jll.PATH
+    ENV["POLYMAKE_USER_DIR"] = abspath(joinpath(depots1(),"polymake_user"))
+
+    if Sys.islinux() && Sys.BINDIR == "/usr/bin"
+       # remove system-paths from LD_LIBRARY_PATH
+       syslibdir = abspath(joinpath(Sys.BINDIR,Base.LIBDIR))
+       libdirs = filter(s->(s!=syslibdir),map(abspath,polymake_jll.LIBPATH_list))
+       ENV[polymake_jll.LIBPATH_env] = join(libdirs,":")
     end
 
     try
