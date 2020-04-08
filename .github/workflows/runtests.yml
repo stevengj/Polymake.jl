@@ -23,17 +23,29 @@ jobs:
         run: |
            git clone -b v0.6.6 --depth 1 https://github.com/JuliaInterop/libcxxwrap-julia
            patch libcxxwrap-julia/include/jlcxx/type_conversion.hpp typeid.patch
-           mkdir $GITHUB_WORKSPACE/libcxxwrap-julia-build
+           mkdir -p libcxxwrap-julia/build
+           cd $GITHUB_WORKSPACE/libcxxwrap-julia/build
            mkdir $GITHUB_WORKSPACE/libcxxwrap-julia-prefix
-           cd $GITHUB_WORKSPACE/libcxxwrap-julia-build
-           cmake -DCMAKE_INSTALL_PREFIX=$GITHUB_WORKSPACE/libcxxwrap-julia-prefix -DCMAKE_BUILD_TYPE=Release ../libcxxwrap-julia
+           cmake -DCMAKE_INSTALL_PREFIX=$GITHUB_WORKSPACE/libcxxwrap-julia-prefix -DCMAKE_BUILD_TYPE=Release ..
            VERBOSE=ON cmake --build . --config Release --target install
+           JLCXX_DIR=$PWD julia -e 'using Pkg; pkg"add CxxWrap"; Pkg.build(); using CxxWrap'
+           ctest -V
+           cd ../testlib-builder
+           mkdir build && cd build
+           cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH=$GITHUB_WORKSPACE/libcxxwrap-julia-prefix ../src/testlib
+           cmake --build . --config Release
            echo "::set-env name=JLCXX_DIR::$GITHUB_WORKSPACE/libcxxwrap-julia-prefix"
       - name: "test cxxwrap"
         env:
           DEVELOPER_DIR: /Applications/Xcode_11.4.app/Contents/Developer
         run: |
-           julia -e 'using Pkg; Pkg.add("CxxWrap"); Pkg.build("CxxWrap"); Pkg.test("CxxWrap");'
+           cd $GITHUB_WORKSPACE/libcxxwrap-julia/build
+           ctest -V
+           cd ../testlib-builder
+           rm -rf build
+           mkdir build && cd build
+           cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH=$GITHUB_WORKSPACE/libcxxwrap-julia-prefix ../src/testlib
+           cmake --build . --config Release
       - uses: julia-actions/julia-buildpkg@latest
         env:
           DEVELOPER_DIR: /Applications/Xcode_11.4.app/Contents/Developer
