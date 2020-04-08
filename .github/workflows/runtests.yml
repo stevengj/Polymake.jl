@@ -2,36 +2,13 @@ name: Run tests
 
 on: [push, pull_request]
 
-env:
-  DEVELOPER_DIR: /Applications/Xcode_11.4.app/Contents/Developer
-
 jobs:
   test-julia-stable:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        julia-version: ['1.0', '1.3']
-        os: [ubuntu-latest, macOS-latest]
-      fail-fast: true
-    
-    steps:
-      - uses: actions/checkout@v1.0.0
-      - name: "Set up Julia"
-        uses: julia-actions/setup-julia@v1
-        with:
-          version: ${{ matrix.julia-version }}
-      - uses: julia-actions/julia-buildpkg@latest
-      - uses: julia-actions/julia-runtest@latest
-      - uses: julia-actions/julia-uploadcodecov@latest
-        env:
-          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
-  
-  test-julia-nightly:
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        julia-version: ['^1.4.0-rc1', 'nightly']
-        os: [ubuntu-latest, macOS-latest]
+        julia-version: ['1.0', '1.3', '1.4']
+        os: [macOS-latest]
       fail-fast: false
     
     steps:
@@ -40,8 +17,29 @@ jobs:
         uses: julia-actions/setup-julia@v1
         with:
           version: ${{ matrix.julia-version }}
+      - name: "build custom libcxxwrap"
+        env:
+          DEVELOPER_DIR: /Applications/Xcode_11.3.1.app/Contents/Developer
+        run: |
+           git clone -b v0.6.6 --depth 1 https://github.com/JuliaInterop/libcxxwrap-julia
+           patch libcxxwrap-julia/include/jlcxx/type_conversion.hpp typeid.patch
+           mkdir $GITHUB_WORKSPACE/libcxxwrap-julia-build
+           mkdir $GITHUB_WORKSPACE/libcxxwrap-julia-prefix
+           cd $GITHUB_WORKSPACE/libcxxwrap-julia-build
+           cmake -DCMAKE_INSTALL_PREFIX=$GITHUB_WORKSPACE/libcxxwrap-julia-prefix -DCMAKE_BUILD_TYPE=Release ../libcxxwrap-julia
+           VERBOSE=ON cmake --build . --config Release --target install
+           echo "::set-env name=JLCXX_DIR::$GITHUB_WORKSPACE/libcxxwrap-julia-prefix"
+      - name: "test cxxwrap"
+        env:
+          DEVELOPER_DIR: /Applications/Xcode_11.4.app/Contents/Developer
+        run: |
+           julia -e 'using Pkg; Pkg.add("CxxWrap"); Pkg.build("CxxWrap"); Pkg.test("CxxWrap");'
       - uses: julia-actions/julia-buildpkg@latest
+        env:
+          DEVELOPER_DIR: /Applications/Xcode_11.4.app/Contents/Developer
       - uses: julia-actions/julia-runtest@latest
+        env:
+          DEVELOPER_DIR: /Applications/Xcode_11.4.app/Contents/Developer
       - uses: julia-actions/julia-uploadcodecov@latest
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}

@@ -1,6 +1,16 @@
---- include/jlcxx/type_conversion.hpp	2020-01-29 00:02:22.000000000 +0100
-+++ ../../include/jlcxx/type_conversion.hpp	2020-04-08 14:14:28.391605525 +0200
-@@ -598,6 +598,10 @@
+diff --git a/include/jlcxx/type_conversion.hpp b/include/jlcxx/type_conversion.hpp
+index 44fbc46..6ec367b 100644
+--- a/include/jlcxx/type_conversion.hpp
++++ b/include/jlcxx/type_conversion.hpp
+@@ -392,6 +392,7 @@ public:
+   static inline void set_julia_type(jl_datatype_t* dt, bool protect = true)
+   {
+     const auto insresult = jlcxx_type_map().insert(std::make_pair(type_hash<SourceT>(), CachedDatatype(dt, protect)));
++    std::cerr << "** Inserting " + std::string(typeid(SourceT).name()) + " with hash " << std::to_string(typeid(SourceT).hash_code()) << " into typemap" << std::endl;
+     if(!insresult.second)
+     {
+       std::cout << "Warning: Type " << typeid(SourceT).name() << " already had a mapped type set as " << julia_type_name(insresult.first->second.get_dt()) << " using hash " << insresult.first->first.first << " and const-ref indicator " << insresult.first->first.second << std::endl;
+@@ -598,6 +599,10 @@ struct JuliaReturnType<T, CxxWrappedTrait<SubTraitT>>
  {
    inline static std::pair<jl_datatype_t*,jl_datatype_t*> value()
    {
