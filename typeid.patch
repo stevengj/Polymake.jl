@@ -1,0 +1,13 @@
+--- include/jlcxx/type_conversion.hpp	2020-01-29 00:02:22.000000000 +0100
++++ ../../include/jlcxx/type_conversion.hpp	2020-04-08 14:14:28.391605525 +0200
+@@ -598,6 +598,10 @@
+ {
+   inline static std::pair<jl_datatype_t*,jl_datatype_t*> value()
+   {
++    if (has_julia_type<T>())
++       std::cerr << "Type " + std::string(typeid(T).name()) + " with hash " << std::to_string(typeid(T).hash_code()) << " has Julia type" << std::endl;
++    else
++       std::cerr << "Type " + std::string(typeid(T).name()) + " with hash " << std::to_string(typeid(T).hash_code()) << " has no Julia type" << std::endl;
+     assert(has_julia_type<T>());
+     return std::make_pair(jl_any_type,julia_type<T>());
+   }

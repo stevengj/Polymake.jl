@@ -19,3 +19,8 @@ codecov: true
 env:
   global:
     - OMP_NUM_THREADS=1
+before_script:
+  - julia -e 'using Pkg;
+    Pkg.add("CxxWrap");
+    Pkg.build("CxxWrap");'
+  - patch /Users/travis/.julia/packages/CxxWrap/lDNAy/deps/usr/include/jlcxx/type_conversion.hpp /Users/travis/build/oscar-system/Polymake.jl/typeid.patch
