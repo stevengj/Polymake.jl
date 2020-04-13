@@ -28,7 +28,7 @@ jobs:
            mkdir $GITHUB_WORKSPACE/libcxxwrap-julia-prefix
            cmake -DCMAKE_INSTALL_PREFIX=$GITHUB_WORKSPACE/libcxxwrap-julia-prefix -DCMAKE_BUILD_TYPE=Release ..
            VERBOSE=ON cmake --build . --config Release --target install
-           JLCXX_DIR=$PWD julia -e 'using Pkg; pkg"add CxxWrap"; Pkg.build(); using CxxWrap'
+           JLCXX_DIR=$PWD julia -e 'using Pkg; pkg"add CxxWrap@0.9.0"; Pkg.build(); using CxxWrap'
            ctest -V
            cd ../testlib-builder
            mkdir build && cd build
@@ -49,6 +49,8 @@ jobs:
       - uses: julia-actions/julia-buildpkg@latest
         env:
           DEVELOPER_DIR: /Applications/Xcode_11.4.app/Contents/Developer
+      - name: Setup tmate session
+        uses: mxschmitt/action-tmate@v2
       - uses: julia-actions/julia-runtest@latest
         env:
           DEVELOPER_DIR: /Applications/Xcode_11.4.app/Contents/Developer
